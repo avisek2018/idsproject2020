@@ -1,11 +1,11 @@
 ---
 title: "<center>IDS-Final Project</center>"
-author: "<center>Avisek Choudhury</center>"
+author: "<center>Avisek Choudhury, Aldo Adriazola, Kait Arnold</center>"
 date: "<center>3/08/2020</center>"
 output:
-  html_document: 
-    toc: yes
   pdf_document: 
+    toc: yes
+  html_document: 
     toc: yes
 ---
 
