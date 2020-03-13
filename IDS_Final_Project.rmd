@@ -158,10 +158,10 @@ ggpairs(cancer_df[ , c(3:12)])
 rescale_x <- function(x){(x-min(x))/(max(x)-min(x))}
 # create a copy of the df
 rescaled_df <- cancer_df
-# get rid of the last column, which is meaningless
-rescaled_df <- rescaled_df[1:32]
+# retain only the first two columns and all the 'mean' data
+rescaled_df <- rescaled_df[1:12]
 # apply the rescale function to all columns except id and diagnosis
-rescaled_df[3:32] <- sapply(rescaled_df[3:32],rescale_x)
+rescaled_df[3:12] <- sapply(rescaled_df[3:12],rescale_x)
 # confirm rescaling worked correctly
 # all rescaled vars should be within [0,1]
 summary(rescaled_df)
@@ -190,8 +190,8 @@ glimpse(train)
 
 # 6. Build a classification algorithm using Kth Nearest Neighbors. Tune the value of K appropriately.
 ```{r}
-# run the KNN classifier with k = 3
-diag_knn <- knn(train[3:32],test[3:32],cl=train$diagnosis,k=3)
+# run the KNN classifier with k = 3, which is roughly sqrt(10)
+diag_knn <- knn(train[3:12],test[3:12],cl=train$diagnosis,k=3)
 # create and display the confusion matrix
 confusion_1 <- table(diag_knn, test$diagnosis)
 confusion_1
