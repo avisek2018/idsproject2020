@@ -33,6 +33,7 @@ Measurements of these ten characteristics are summarized for all cells in the sa
 #Load the necessary libraries
 library(tidyverse)
 library(class)
+library(caret)
 ```
 
 
@@ -55,14 +56,40 @@ head(cancer_df)
 # ggplot(cancer_df[ , c(3:12)] %>% gather(), aes(value)) + 
 #     geom_histogram(bins = 10) + 
 #     facet_wrap(~key, scales = 'free_x')
-
+# create a histogram for the mean measurements
 ggplot(cancer_df[ , c(2:12)] %>% 
          pivot_longer(cols = radius_mean:fractal_dimension_mean), 
-       aes(value, fill = diagnosis)) + 
-    geom_histogram(bins = 10) + 
+       aes(value, fill = diagnosis)) +
+    geom_histogram(bins = 10) +  ggtitle("Histogram of Mean Measurements") +
+  theme(plot.title = element_text(hjust = 0.5)) +
     facet_wrap(~name, scales = 'free_x')
 
 ```
+
+
+```{r}
+# create a histogram for the standard error measurements
+ggplot(cancer_df[ , c(2,13:22)] %>% 
+         pivot_longer(cols = radius_se:fractal_dimension_se), 
+       aes(value, fill = diagnosis)) + 
+    geom_histogram(bins = 10)  +  ggtitle("Histogram of Standard Error Measurements") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+    facet_wrap(~name, scales = 'free_x')
+```
+
+```{r}
+# create a histogram for the maximum/worst measurements
+ggplot(cancer_df[ , c(2,23:32)] %>% 
+         pivot_longer(cols = radius_worst:fractal_dimension_worst), 
+       aes(value, fill = diagnosis)) + 
+    geom_histogram(bins = 10)  +  ggtitle("Histogram of Maximum/Worst Measurements") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+    facet_wrap(~name, scales = 'free_x')
+```
+
+
+Based on the output above, we chose to focus on the mean measurements.  The standard error and maximum/worst measurements do not add appear to add much over what is already visible in the mean measurements.
+
 
 ```{r hist1, warning=FALSE, error=TRUE, message=FALSE}
 #Histogram of the Mean Radius of nuclei
@@ -168,20 +195,21 @@ summary(rescaled_df)
 
 # Now split the data
 # set the seed to Notre Dame's founding year
-set.seed(1847)
+set.seed(1842)
 # determine the number of rows in the dataframe
 n <- nrow(rescaled_df)
 # get a list of 20% of the rows in combined to use as indices
 test_idx <- sample.int(n, size = round(0.2 * n))
 # set the the training data to be those rows not matching the index list
-train <- rescaled_df[-test_idx,]
+training <- rescaled_df[-test_idx,]
 # show the number of training rows
-nrow(train)
+nrow(training)
+glimpse(training)
 # set the the test data to be those rows matching the index list
-test <- rescaled_df[test_idx,] 
+testing <- rescaled_df[test_idx,] 
 # show the number of test rows
-nrow(test)
-glimpse(train)
+nrow(testing)
+glimpse(training)
 ```
 
 
@@ -190,11 +218,62 @@ glimpse(train)
 
 # 6. Build a classification algorithm using Kth Nearest Neighbors. Tune the value of K appropriately.
 ```{r}
-# run the KNN classifier with k = 3, which is roughly sqrt(10)
-diag_knn <- knn(train[3:12],test[3:12],cl=train$diagnosis,k=3)
+# Choose a value for K that is equal to the square root of n,
+# the numnber of onservations in the training set
+k_try = sqrt(nrow(training[3:12]))
+k_try
+
+# We'll use 21 as our value of K
+diag_knn_9 <- knn(training[3:12],testing[3:12],cl=training$diagnosis,k=21)
+
+### Note to Avisek and Kait - we should pick either option 1 or two below
+### Option 2 adds more information, but I don't know if it is useful
+### I would like your feedback
+
+
+### Option 1
+cat("\n*** Option 1 ***\n")
 # create and display the confusion matrix
-confusion_1 <- table(diag_knn, test$diagnosis)
+confusion_1 <- table(diag_knn, testing$diagnosis)
 confusion_1
-# show the accuracy of the decision tree
-sum(diag(confusion_1)/nrow(test))
+# show the accuracy of the KNN classification
+sum(diag(confusion_1)/nrow(testing))
+
+
+### Option 2
+cat("\n*** Option 2 ***\n")
+# create and display the confusion matrix
+confusionMatrix(factor(diag_knn),factor(testing$diagnosis))
+```
+
+
+Let's tune K to see if we can get better accuracy
+```{r}
+# set the seed for consistent results
+set.seed(1842)
+# set the train control to use 5-fold cross validation
+# choosing 5-fold as a good middle ground
+trControl <- trainControl(method  = "cv",
+                          number  = 5)
+
+#find the best knn fit using values of K of all odd numbers from 1 to 99
+knn_fit <- train(diagnosis ~ .,
+             method     = "knn",
+             tuneGrid   = expand.grid(k = c((1:50)*2 - 1)),
+             trControl  = trControl,
+             metric     = "Accuracy",
+             data       = training[-1])
+knn_fit
+```
+
+
+Revising our solution to use K = 9
+```{r}
+# We'll use 9 as our value of K
+diag_knn_9 <- knn(training[3:12],testing[3:12],cl=training$diagnosis,k=9)
+confusion_2 <- table(diag_knn_9, testing$diagnosis)
+confusion_2
+# show the accuracy of the KNN classification
+sum(diag(confusion_2)/nrow(testing))
+
 ```
