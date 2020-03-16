@@ -17,7 +17,7 @@ The data consists of measurements of the cell nuclei for the following character
 
 1. radius 
 2. texture 
-3. perimete r
+3. perimeter
 4. area 
 5. smoothness (local variation in radius lengths) 
 6. compactness (perimeter^2 / area - 1.0) 
@@ -356,6 +356,26 @@ plot(diag.rf.caret)
 ```
 
 So we can see the highest accuracy can be achived by using mtry = 7 i.e. considering 7 predictors at a time for spliting to generate the trees in the random forest.
+
+```{r rfOpfPredict, warning=FALSE, error=TRUE, message=FALSE}
+# use the optimized Random Forest created above to predict values in the test data 
+# and then store the results
+testing$rf_opt_pred <- predict(diag.rf.caret$finalModel,newdata=testing, type="class")
+# create the confusion matrix using the table function
+confusion_rf_opt <- table(testing$rf_opt_pred, testing$diagnosis)
+confusion_rf_opt
+# show the accuracy of the Random Forest
+cat("Overall accuracy of prediction:\t",sum(diag(confusion_rf_opt)/nrow(testing)) 
+    %>% round(4),"\n")
+# show the percentage of M misclassified as B
+cat("Rate of misclassifying M as B:\t",(confusion_rf_opt[1,2]/(confusion_rf_opt[1,1]+confusion_rf_opt[1,2])) 
+    %>% round(4),"\n")
+# show the percentage of B misclassified as M
+cat("Rate of misclassifying B as M:\t",(confusion_rf_opt[2,1]/(confusion_rf_opt[2,1]+confusion_rf_opt[2,2])) 
+    %>% round(4),"\n")
+```
+There appears to be no difference between the initial random forest and the adjusted/optimized one.
+
 
 # 6. Build a classification algorithm using Kth Nearest Neighbors. Tune the value of K appropriately.
 
