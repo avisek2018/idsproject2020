@@ -220,13 +220,13 @@ glimpse(training)
 ```
 
 
-# 3. Build a classification algorithm using decision trees. Prune your tree appropriately.
+# 4. Build a classification algorithm using decision trees. Prune your tree appropriately.
 
 ```{r descTree, warning=FALSE, error=TRUE, message=FALSE}
 # set the seed for consistent results
 set.seed(1842)
 
-#Mention the formula
+# Define the formula
 form <- as.formula(diagnosis ~ radius_mean + texture_mean + perimeter_mean + 
                      area_mean + smoothness_mean + compactness_mean + concavity_mean + 
                      concave_points_mean + symmetry_mean + fractal_dimension_mean)
@@ -273,8 +273,26 @@ fancyRpartPlot(diag.tree.caret$finalModel)
 ```
 
 
-# 5. Build a classification algorithm using random forests/bagging. Adjust the parameters of
-the forest appropriately.
+```{r treePredict, warning=FALSE, error=TRUE, message=FALSE}
+# use the decision tree created above to predict values in the test data 
+# and then store the results
+testing$tree_predict <- predict(diag.new.tree,newdata=testing, type="class")
+# create the confusion matrix using the table function
+confusion_tree <- table(testing$tree_predict, testing$diagnosis)
+confusion_tree
+# show the accuracy of the decision tree
+cat("Overall accuracy of prediction:\t",sum(diag(confusion_tree)/nrow(testing)) 
+    %>% round(4),"\n")
+# show the percentage of M misclassified as B
+cat("Rate of misclassifying M as B:\t",(confusion_tree[1,2]/(confusion_tree[1,1]+confusion_tree[1,2])) 
+    %>% round(4),"\n")
+# show the percentage of B misclassified as M
+cat("Rate of misclassifying B as M:\t",(confusion_tree[2,1]/(confusion_tree[2,1]+confusion_tree[2,2])) 
+    %>% round(4),"\n")
+```
+
+
+# 5. Build a classification algorithm using random forests/bagging. Adjust the parameters of the forest appropriately.
 
 ```{r randForest, warning=FALSE, error=TRUE, message=FALSE}
 
@@ -288,6 +306,26 @@ diag.forest <- randomForest(form, mtry = 3, ntree = 500,
 #Print the Random Forest
 diag.forest
 ```
+
+```{r rfPredict, warning=FALSE, error=TRUE, message=FALSE}
+# use the Random Forest created above to predict values in the test data 
+# and then store the results
+testing$rf_pred <- predict(diag.forest,newdata=testing, type="class")
+# create the confusion matrix using the table function
+confusion_rf <- table(testing$rf_pred, testing$diagnosis)
+confusion_rf
+# show the accuracy of the Random Forest
+cat("Overall accuracy of prediction:\t",sum(diag(confusion_rf)/nrow(testing)) 
+    %>% round(4),"\n")
+# show the percentage of M misclassified as B
+cat("Rate of misclassifying M as B:\t",(confusion_rf[1,2]/(confusion_rf[1,1]+confusion_rf[1,2])) 
+    %>% round(4),"\n")
+# show the percentage of B misclassified as M
+cat("Rate of misclassifying B as M:\t",(confusion_rf[2,1]/(confusion_rf[2,1]+confusion_rf[2,2])) 
+    %>% round(4),"\n")
+```
+
+
 
 ```{r randForestCaret, warning=FALSE, error=TRUE, message=FALSE}
 
@@ -328,21 +366,19 @@ So we can see the highest accuracy can be achived by using mtry = 7 i.e. conside
 k_try = sqrt(nrow(training[3:12]))
 k_try
 # We'll use 21 as our value of K
-diag_knn_9 <- knn(training[3:12],testing[3:12],cl=training$diagnosis,k=21)
-### Note to Avisek and Kait - we should pick either option 1 or two below
-### Option 2 adds more information, but I don't know if it is useful
-### I would like your feedback
-### Option 1
-cat("\n*** Option 1 ***\n")
+diag_knn_21 <- knn(training[3:12],testing[3:12],cl=training$diagnosis,k=21)
 # create and display the confusion matrix
-confusion_1 <- table(diag_knn_9, testing$diagnosis)
-confusion_1
+confusion_knn21 <- table(predicted = diag_knn_21, actual = testing$diagnosis)
+confusion_knn21
 # show the accuracy of the KNN classification
-sum(diag(confusion_1)/nrow(testing))
-### Option 2
-cat("\n*** Option 2 ***\n")
-# create and display the confusion matrix
-confusionMatrix(factor(diag_knn_9),factor(testing$diagnosis))
+cat("Overall accuracy of prediction:\t",sum(diag(confusion_knn21)/nrow(testing)) 
+    %>% round(4),"\n")
+# show the percentage of M misclassified as B
+cat("Rate of misclassifying M as B:\t",(confusion_knn21[1,2]/(confusion_knn21[1,1]+confusion_knn21[1,2])) 
+    %>% round(4),"\n")
+# show the percentage of B misclassified as M
+cat("Rate of misclassifying B as M:\t",(confusion_knn21[2,1]/(confusion_knn21[2,1]+confusion_knn21[2,2])) 
+    %>% round(4),"\n")
 ```
 
 
@@ -371,8 +407,16 @@ Revising our solution to use K = 9
 ```{r tuneKnn, warning=FALSE, error=TRUE, message=FALSE}
 # We'll use 9 as our value of K
 diag_knn_9 <- knn(training[3:12],testing[3:12],cl=training$diagnosis,k=9)
-confusion_2 <- table(diag_knn_9, testing$diagnosis)
-confusion_2
+# create and display the confusion matrix
+confusion_knn9 <- table(predicted = diag_knn_9, actual = testing$diagnosis)
+confusion_knn9
 # show the accuracy of the KNN classification
-sum(diag(confusion_2)/nrow(testing))
+cat("Overall accuracy of model:\t",sum(diag(confusion_knn9)/nrow(testing)) 
+    %>% round(4),"\n")
+# show the percentage of M misclassified as B
+cat("Rate of misclassifying M as B:\t",(confusion_knn9[1,2]/(confusion_knn9[1,1]+confusion_knn9[1,2])) 
+    %>% round(4),"\n")
+# show the percentage of B misclassified as M
+cat("Rate of misclassifying B as M:\t",(confusion_knn9[2,1]/(confusion_knn9[2,1]+confusion_knn9[2,2])) 
+    %>% round(4),"\n")
 ```
