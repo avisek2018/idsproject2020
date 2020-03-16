@@ -29,15 +29,18 @@ The data consists of measurements of the cell nuclei for the following character
 Measurements of these ten characteristics are summarized for all cells in the sample. The dataset consists of the mean, standard error of the mean, and maximum of the 10 characteristics, for a total of 30 observations for each. Additionally, the data set includes an identification number and a variable that indicates if the tissue mass is malignant (M) or benign (B).
 
 ```{r readCSV, warning=FALSE, error=TRUE, message=FALSE}
-
 #Load the necessary libraries
 library(tidyverse)
 library(class)
 library(caret)
+library(rpart)
+library(partykit)
+library(randomForest)
 ```
 
 
 # 1. Download the data from NeXus: FNA_cancer.csv
+
 ```{r readCSV, warning=FALSE, error=TRUE, message=FALSE}
 #Load the dataset that was previously downloaded
 cancer_df <- read_csv('C:/MSDS/Spring 2020/IDS/Project/FNA_cancer.csv')
@@ -51,8 +54,16 @@ head(cancer_df)
 
 ## Exploratory data analysis (EDA)
 
-```{r combHist, warning=FALSE, error=TRUE, message=FALSE}
+```{r fixColumn, warning=FALSE, error=TRUE, message=FALSE}
+#Make the Diagnosis as Factor
+cancer_df$diagnosis <- as.factor(cancer_df$diagnosis)
 
+#Fix the column names for consistency
+colnames(cancer_df) <- str_replace(colnames(cancer_df), ' ', '_')
+```
+
+
+```{r combHistMean, warning=FALSE, error=TRUE, message=FALSE}
 # ggplot(cancer_df[ , c(3:12)] %>% gather(), aes(value)) + 
 #     geom_histogram(bins = 10) + 
 #     facet_wrap(~key, scales = 'free_x')
@@ -63,11 +74,10 @@ ggplot(cancer_df[ , c(2:12)] %>%
     geom_histogram(bins = 10) +  ggtitle("Histogram of Mean Measurements") +
   theme(plot.title = element_text(hjust = 0.5)) +
     facet_wrap(~name, scales = 'free_x')
-
 ```
 
 
-```{r}
+```{r combHistSE, warning=FALSE, error=TRUE, message=FALSE}
 # create a histogram for the standard error measurements
 ggplot(cancer_df[ , c(2,13:22)] %>% 
          pivot_longer(cols = radius_se:fractal_dimension_se), 
@@ -77,7 +87,7 @@ ggplot(cancer_df[ , c(2,13:22)] %>%
     facet_wrap(~name, scales = 'free_x')
 ```
 
-```{r}
+```{r combHistMaxMin, warning=FALSE, error=TRUE, message=FALSE}
 # create a histogram for the maximum/worst measurements
 ggplot(cancer_df[ , c(2,23:32)] %>% 
          pivot_longer(cols = radius_worst:fractal_dimension_worst), 
@@ -96,7 +106,6 @@ Based on the output above, we chose to focus on the mean measurements.  The stan
 ggplot(data = cancer_df, aes(x = radius_mean)) + 
   geom_histogram(aes(fill = diagnosis), alpha = 0.5) +
   xlab('Mean Radius of nuclei') 
-
 ggplot(cancer_df, aes(x = radius_mean, color = diagnosis, fill = diagnosis)) + 
  geom_histogram(aes(y=..density..), alpha=0.5, 
                 position="identity")+
@@ -149,7 +158,7 @@ ggplot(data = cancer_df, aes(x = concavity_mean)) +
 
 ```{r hist8, warning=FALSE, error=TRUE, message=FALSE}
 #Histogram of the concave points_mean
-ggplot(data = cancer_df, aes(x = `concave points_mean`)) + 
+ggplot(data = cancer_df, aes(x = concave_points_mean)) + 
   geom_histogram(aes(fill = diagnosis), alpha = 0.5) +
   xlab('Concave Points Mean of nuclei') 
 ```
@@ -170,7 +179,6 @@ ggplot(data = cancer_df, aes(x = fractal_dimension_mean)) +
 
 ```{r ggally, warning=FALSE, error=TRUE, message=FALSE}
 library(GGally)
-
 #Pair plot between variables
 ggpairs(cancer_df[ , c(3:12)])
 ```
@@ -192,7 +200,6 @@ rescaled_df[3:12] <- sapply(rescaled_df[3:12],rescale_x)
 # confirm rescaling worked correctly
 # all rescaled vars should be within [0,1]
 summary(rescaled_df)
-
 # Now split the data
 # set the seed to Notre Dame's founding year
 set.seed(1842)
@@ -213,49 +220,141 @@ glimpse(training)
 ```
 
 
+# 3. Build a classification algorithm using decision trees. Prune your tree appropriately.
+
+```{r descTree, warning=FALSE, error=TRUE, message=FALSE}
+# set the seed for consistent results
+set.seed(1842)
+
+#Mention the formula
+form <- as.formula(diagnosis ~ radius_mean + texture_mean + perimeter_mean + 
+                     area_mean + smoothness_mean + compactness_mean + concavity_mean + 
+                     concave_points_mean + symmetry_mean + fractal_dimension_mean)
+
+#Generate the Decision tree
+diag.tree <- rpart(form, data=training)
+
+#Print the Tree CP
+printcp(diag.tree)
+
+#Plotting the Tree CP
+plotcp(diag.tree)
+
+#Partykit plot of the Tree
+plot(as.party(diag.tree))
+```
+
+Prune the tree using CP 0.035
+
+```{r pruneTree, warning=FALSE, error=TRUE, message=FALSE}
+diag.new.tree <- prune(diag.tree, cp = 0.035)
+
+#Partykit plot of the Pruned Tree
+plot(as.party(diag.new.tree))
+```
+
+```{r fancyPlot, warning=FALSE, error=TRUE, message=FALSE}
+library(rattle)
+#Generate the fancy plot
+fancyRpartPlot(diag.new.tree)
+```
+
+Let's use the cross-validation method from `caret` package to compare the models.
+
+```{r caretTree, warning=FALSE, error=TRUE, message=FALSE}
+# fit the model
+diag.tree.caret = train(form, 
+                        data = training, 
+                        method = 'rpart', 
+                        trControl = trainControl(method = "cv"))
+
+#Plot the Final Tree
+fancyRpartPlot(diag.tree.caret$finalModel)
+```
 
 
+# 5. Build a classification algorithm using random forests/bagging. Adjust the parameters of
+the forest appropriately.
+
+```{r randForest, warning=FALSE, error=TRUE, message=FALSE}
+
+# set the seed for consistent results
+set.seed(1842)
+
+#Generate the Random Forest
+diag.forest <- randomForest(form, mtry = 3, ntree = 500, 
+                            data=training, na.action = na.roughfix)
+
+#Print the Random Forest
+diag.forest
+```
+
+```{r randForestCaret, warning=FALSE, error=TRUE, message=FALSE}
+
+#10 folds repeat 3 times
+control <- trainControl(method='repeatedcv', 
+                        number=10, 
+                        repeats=3,
+                        search = 'random')
+#Metric compare model is Accuracy
+metric <- "Accuracy"
+
+# set the seed for consistent results
+set.seed(1842)
+
+#Number randomely variable selected is mtry
+diag.rf.caret <- train(form, 
+                      data=training, 
+                      method='rf', 
+                      metric='Accuracy', 
+                      tuneLength = 10,
+                      trControl=control)
+
+#Print the random forest cross validation results
+print(diag.rf.caret)
+
+#Plot the mtry vs Accuracy chart
+plot(diag.rf.caret)
+```
+
+So we can see the highest accuracy can be achived by using mtry = 7 i.e. considering 7 predictors at a time for spliting to generate the trees in the random forest.
 
 # 6. Build a classification algorithm using Kth Nearest Neighbors. Tune the value of K appropriately.
-```{r}
+
+
+```{r knnModel, warning=FALSE, error=TRUE, message=FALSE}
 # Choose a value for K that is equal to the square root of n,
 # the numnber of onservations in the training set
 k_try = sqrt(nrow(training[3:12]))
 k_try
-
 # We'll use 21 as our value of K
 diag_knn_9 <- knn(training[3:12],testing[3:12],cl=training$diagnosis,k=21)
-
 ### Note to Avisek and Kait - we should pick either option 1 or two below
 ### Option 2 adds more information, but I don't know if it is useful
 ### I would like your feedback
-
-
 ### Option 1
 cat("\n*** Option 1 ***\n")
 # create and display the confusion matrix
-confusion_1 <- table(diag_knn, testing$diagnosis)
+confusion_1 <- table(diag_knn_9, testing$diagnosis)
 confusion_1
 # show the accuracy of the KNN classification
 sum(diag(confusion_1)/nrow(testing))
-
-
 ### Option 2
 cat("\n*** Option 2 ***\n")
 # create and display the confusion matrix
-confusionMatrix(factor(diag_knn),factor(testing$diagnosis))
+confusionMatrix(factor(diag_knn_9),factor(testing$diagnosis))
 ```
 
 
 Let's tune K to see if we can get better accuracy
-```{r}
+
+```{r knnCaret, warning=FALSE, error=TRUE, message=FALSE}
 # set the seed for consistent results
 set.seed(1842)
 # set the train control to use 5-fold cross validation
 # choosing 5-fold as a good middle ground
 trControl <- trainControl(method  = "cv",
                           number  = 5)
-
 #find the best knn fit using values of K of all odd numbers from 1 to 99
 knn_fit <- train(diagnosis ~ .,
              method     = "knn",
@@ -268,12 +367,12 @@ knn_fit
 
 
 Revising our solution to use K = 9
-```{r}
+
+```{r tuneKnn, warning=FALSE, error=TRUE, message=FALSE}
 # We'll use 9 as our value of K
 diag_knn_9 <- knn(training[3:12],testing[3:12],cl=training$diagnosis,k=9)
 confusion_2 <- table(diag_knn_9, testing$diagnosis)
 confusion_2
 # show the accuracy of the KNN classification
 sum(diag(confusion_2)/nrow(testing))
-
 ```
