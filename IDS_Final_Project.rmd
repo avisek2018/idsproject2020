@@ -46,10 +46,7 @@ library(e1071)
 
 ```{r readCSV, warning=FALSE, error=TRUE, message=FALSE}
 #Load the dataset that was previously downloaded
-#cancer_df <- read_csv('C:/MSDS/Spring 2020/IDS/Project/FNA_cancer.csv')
-
-# Path for Kait to download data
-cancer_df <- read_csv("FNA_cancer.csv")
+cancer_df <- read_csv('C:/MSDS/Spring 2020/IDS/Project/FNA_cancer.csv')
 
 # Print the dataset
 head(cancer_df)
