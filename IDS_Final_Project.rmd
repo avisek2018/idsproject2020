@@ -419,6 +419,8 @@ cat("Rate of misclassifying B as M:\t",
 
 # 5. Build a classification algorithm using random forests/bagging. Adjust the parameters of the forest appropriately.
 
+We create a random forest to be used as a basis to predict diagnosis.  The forest is set up so that there will be 500 trees and 3 variables will be tried at each split.
+
 ```{r randForest, warning=FALSE, error=TRUE, message=FALSE}
 
 # set the seed for consistent results
@@ -434,6 +436,9 @@ diag.forest <- randomForest(form, mtry = 3,
 diag.forest
 ```
 
+
+
+We use the forest to predict the diagnosis in the test data.  We show the overall accuracy of the prediction.  Then we show the overall accuracy of the classifier with this value of K as well as the misclassifcation rate for M as B and B as M.
 ```{r rfPredict, warning=FALSE, error=TRUE, message=FALSE}
 # use the Random Forest created above to predict values in the test data 
 # and then store the results
@@ -464,7 +469,7 @@ cat("Rate of misclassifying B as M:\t",
 ```
 
 
-
+We attempt to refine the mtry parameter.  Perhaps there is a different number of splits that will result in higher accuracy for the prediction.  We will take the output of this optimization and use it to predict the diagnosis.
 ```{r randForestCaret, warning=FALSE, error=TRUE, message=FALSE}
 
 #10 folds repeat 3 times
@@ -495,6 +500,9 @@ plot(diag.rf.caret)
 
 So we can see the highest accuracy can be achived by using mtry = 7 i.e. considering 7 predictors at a time for spliting to generate the trees in the random forest.
 
+
+
+We use our random forest with the optimized value of mtry to predict the diagnosis of the test data.  We then compare the results to the original random forest above
 ```{r rfOpfPredict, warning=FALSE, error=TRUE, message=FALSE}
 # use the optimized Random Forest created above to predict values in the test data 
 # and then store the results
@@ -530,7 +538,7 @@ There appears to be no difference between the initial random forest and the adju
 
 # 6. Build a classification algorithm using Kth Nearest Neighbors. Tune the value of K appropriately.
 
-
+We'll use the Kth Nearest Neighbor to classify the diagnosis.  The KNN approach is a lazy learner, which means that it will predict values in a test data set based upon distances from values in a training data set without creating a model.  For a given point in the test data, we calculate the distance of all the predictors from the Kth nearest neighbors in the training data.  If the majority of the nearest neighbors are benign (B), then our test data point is classified as B.  If of the other hand, most neighbors are malignant (M), then our test data point is classified as M.  We use odd numbers as values for K; even values of K could result in a tie, which would might cause random results.  To begin, we choose a value of K that is equal to the square root of n, the number of rows in our training data set. Then we show the overall accuracy of the classifier with this value of K as well as the misclassifcation rate for M as B and B as M.
 ```{r knnModel, warning=FALSE, error=TRUE, message=FALSE}
 # Choose a value for K that is equal to the square root of n,
 # the numnber of onservations in the training set
@@ -570,6 +578,8 @@ cat("Rate of misclassifying B as M:\t",
 
 Let's tune K to see if we can get better accuracy
 
+
+We will use the caret package "train" function to see if a diffent value of K results in higher accuracy.  This code block will step through odd numbers from 1 to 99 as values of K.  If a better value of N is found, then we will use that value instead.
 ```{r knnCaret, warning=FALSE, error=TRUE, message=FALSE}
 # set the seed for consistent results
 set.seed(1842)
@@ -593,31 +603,33 @@ knn_fit
 
 Revising our solution to use K = 9
 
+We use the optimized value of K that was determined in the step above. Then we show the overall accuracy of the classifier with this optimized value of K as well as the misclassifcation rate for M as B and B as M.
+
 ```{r tuneKnn, warning=FALSE, error=TRUE, message=FALSE}
-# We'll use 9 as our value of K
-diag_knn_9 <- knn(training[3:12],testing[3:12],
-                  cl=training$diagnosis,k=9)
+# We'll use the value obtained above as our value of K
+diag_knn_opt <- knn(training[3:12],testing[3:12],
+                  cl=training$diagnosis,k=knn_fit$bestTune)
 
 # create and display the confusion matrix
-confusion_knn9 <- table(predicted = diag_knn_9, 
+confusion_knn_opt <- table(predicted = diag_knn_opt, 
                         actual = testing$diagnosis)
 # Print the confusion matrix
-confusion_knn9
+confusion_knn_opt
 
 # show the accuracy of the KNN classification
 cat("Overall accuracy of model:\t", 
-    sum(diag(confusion_knn9)/nrow(testing)) %>% 
+    sum(diag(confusion_knn_opt)/nrow(testing)) %>% 
       round(4),"\n")
 
 # show the percentage of M misclassified as B
 cat("Rate of misclassifying M as B:\t", 
-    (confusion_knn9[1,2] / 
-       (confusion_knn9[1,1] + confusion_knn9[1,2])) %>% 
+    (confusion_knn_opt[1,2] / 
+       (confusion_knn_opt[1,1] + confusion_knn_opt[1,2])) %>% 
       round(4),"\n")
 
 # show the percentage of B misclassified as M
 cat("Rate of misclassifying B as M:\t", 
-    (confusion_knn9[2,1] / 
-       (confusion_knn9[2,1] + confusion_knn9[2,2])) %>% 
+    (confusion_knn_opt[2,1] / 
+       (confusion_knn_opt[2,1] + confusion_knn_opt[2,2])) %>% 
       round(4),"\n")
 ```
