@@ -48,7 +48,7 @@ library(e1071)
 # 1. Download the data from NeXus: FNA_cancer.csv
 
 ```{r readCSV, warning=FALSE, error=TRUE, message=FALSE}
-#Load the dataset that was previously downloaded
+# Load the dataset that was previously downloaded
 cancer_df <- read_csv('C:/MSDS/Spring 2020/IDS/Project/FNA_cancer.csv')
 # Print the dataset
 head(cancer_df)
@@ -68,21 +68,23 @@ cancer_df$diagnosis <- as.factor(cancer_df$diagnosis)
 colnames(cancer_df) <- str_replace(colnames(cancer_df), ' ', '_')
 ```
 
-Let's plot the histogram for each of the mean measurements to visualize the distribution of each field. we will color by the diagnosis to see the distribution of each field's mean broken down by diagnosis, B and M.
+Let's plot the histogram for each of the mean measurements to visualize the distribution of each field. We will color by the diagnosis to see the distribution of each field's mean broken down by diagnosis, B and M.
 
 ```{r combHistMean, warning=FALSE, error=TRUE, message=FALSE}
+# center all plot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+
 # create a histogram for each of the mean measurements to visualize the 
 # distribution of each field. we will color by the diagnosis to see the distribution 
-#of each field's mean broken down by diagnosis, B and M.
+# of each field's mean broken down by diagnosis, B and M.
 ggplot(cancer_df[ , c(2:12)] %>% 
          pivot_longer(cols = radius_mean:fractal_dimension_mean), 
        aes(value, fill = diagnosis)) +
   geom_histogram(bins = 10) +  ggtitle("Histogram of Mean Measurements") +
-  theme(plot.title = element_text(hjust = 0.5)) +
   facet_wrap(~name, scales = 'free_x')
 ```
 
-Let's plot the histogram for each of the standard error of the measurements to visualize the distribution of each field. we will color by the diagnosis to see the distribution of each field's mean broken down by diagnosis, B and M.
+Let's plot the histogram for each of the standard error of the measurements to visualize the distribution of each field. We will color by the diagnosis to see the distribution of each field's mean broken down by diagnosis, B and M.
 
 ```{r combHistSE, warning=FALSE, error=TRUE, message=FALSE}
 # create a histogram for the standard error measurements.
@@ -92,11 +94,10 @@ ggplot(cancer_df[ , c(2,13:22)] %>%
          pivot_longer(cols = radius_se:fractal_dimension_se), 
        aes(value, fill = diagnosis)) + 
   geom_histogram(bins = 10)  +  ggtitle("Histogram of Standard Error Measurements") +
-  theme(plot.title = element_text(hjust = 0.5)) + 
   facet_wrap(~name, scales = 'free_x')
 ```
 
-Let's plot the histogram for the maximum/worst measurements of each predictors to visualize the distribution of each field. we will color by the diagnosis to see the distribution of each field's mean broken down by diagnosis, B and M.
+Let's plot the histogram for the maximum/worst measurements of each predictors to visualize the distribution of each field. We will color by the diagnosis to see the distribution of each field's mean broken down by diagnosis, B and M.
 
 ```{r combHistMaxMin, warning=FALSE, error=TRUE, message=FALSE}
 # create a histogram for the maximum/worst measurements colored by diagnosis.
@@ -109,11 +110,11 @@ ggplot(cancer_df[ , c(2,23:32)] %>%
 ```
 
 
-Based on the output above, we chose to focus on the mean measurements.  The standard error and maximum/worst measurements do not appear to add much value compared to what is already visible in our mean measurements analysis. 
+Based on the output above, we chose to focus on the mean measurements.  The standard error and maximum/worst measurements do not appear to add much value compared to what is already visible in our mean measurements. 
 
 From the preliminary EDA of the mean above, we learned of the vast differences between the histograms for benign and malignant tumors in all of the tumor metadata.
 
-Now let's plot the histograms of each variables for better insights. For each variable we are generating the histogram to examine the distribution of the values and also a histogram with the density plot. In these density plots, we attempt to visualize the underlying probability distribution of the data by drawing an appropriate continuous curve.
+Now let's plot the histograms of each variables for better insights. For each variable we generate a histogram to examine the distribution of the values and also a histogram with the density plot. In these density plots, we attempt to visualize the underlying probability distribution of the data by drawing an appropriate continuous curve.
 
 
 ```{r hist1, warning=FALSE, error=TRUE, message=FALSE}
@@ -264,7 +265,7 @@ ggplot(cancer_df, aes(x = fractal_dimension_mean,
 # import library to use ggpairs function
 library(GGally)
 # Use the ggpairs function (from GGally) which which creates 
-#a matrix of plots within a given dataset
+# a matrix of plots within a given dataset
 ggpairs(cancer_df[ , c(3:12)])
 ```
 
@@ -272,7 +273,7 @@ ggpairs(cancer_df[ , c(3:12)])
 
 # 3. Split the data into test and training data.
 
-Let's select randomly 80% of the data as training data which will be used to train our model and we'll use the rest 20% as test data which will be used to test the performance of our model. <br>
+Let's select randomly 80% of the data as training data which will be used to train our model and we'll use the rest 20% as test data which will be used to test the performance of our model or classifier. <br>
 We also rescale our data before splitting it to train and test.
 
 ```{r}
@@ -312,8 +313,8 @@ glimpse(training)
 
 # 4. Build a classification algorithm using decision trees. Prune your tree appropriately.
 
-Decision Tree algorithm belongs to the family of supervised learning algorithms; it can be used for solving both regression and classification problems. The general motive of using Decision Tree is to create a training model which can use to predict class or value of target variables by learning decision rules inferred from prior data(training data). The decision tree algorithm tries to solve the problem, by using tree representation. Each internal node of the tree corresponds to an attribute, and each leaf node corresponds to a class label. <br>
-In R there are several package available to run the decision tree algorithm. Here we'll use ` rpart` package and also ` caret` package implement decision tree with cross-validation.
+The Decision Tree algorithm belongs to the family of supervised learning algorithms; it can be used for solving both regression and classification problems. The general motivation for using a decision tree is to predict the class or value of target variables by learning decision rules inferred from prior data (the training data). The decision tree algorithm tries to solve the problem, by using a tree representation. Each internal node of the tree corresponds to an attribute and each leaf node corresponds to a class label. <br>
+In R there are several packages available to run the decision tree algorithm. Here we'll use ` rpart` package and also ` caret` package implement the decision tree with cross-validation.
 
 ```{r descTree, warning=FALSE, error=TRUE, message=FALSE}
 # set the seed for consistent results
@@ -334,7 +335,7 @@ plotcp(diag.tree)
 plot(as.party(diag.tree))
 ```
 
-Overfitting is a practical problem while building a decision tree model. The model is having an issue of overfitting is considered when the algorithm continues to go deeper and deeper and try to reduce the training set error but results with an increased test set error i.e, Accuracy of prediction for our model goes down. It  generally happens when it builds many branches due to outliers and irregularities in data. There are couple of approaches to address this issue. We'll use Post-Pruning here. Pruning is a technique in machine learning and search algorithms that reduces the size of decision trees by removing sections of the tree that provide little power to classify instances. Pruning reduces the complexity of the final classifier, and hence improves predictive accuracy by the reduction of overfitting. <br>
+Overfitting is a practical problem when building a decision tree model. A model is  overfit when the algorithm continues to go deeper and deeper to try to reduce the training set error.  This results in an increased test set error; the accuracy of prediction for our model goes down. It generally happens when it builds many branches due to outliers and irregularities in the data. There are a couple of approaches to address this issue. We'll use Post-Pruning here. Pruning is a technique in machine learning and search algorithms that reduces the size of decision trees by removing sections of the tree that provide little power to classify instances. Pruning reduces the complexity of the final classifier, and hence improves predictive accuracy by reducing overfitting. <br>
 
 Let's use the ` plotcp()` from ` rpart` which provides a graphical representation to the cross validated error summary. The cp values are plotted against the geometric mean to depict the deviation until the minimum value is reached. <br>
 
@@ -342,7 +343,7 @@ Prune the tree using CP 0.035 using the prune function.
 
 ```{r pruneTree, warning=FALSE, error=TRUE, message=FALSE}
 diag.new.tree <- prune(diag.tree, cp = 0.035)
-#Partykit plot of the Pruned Tree
+# Partykit plot of the Pruned Tree
 plot(as.party(diag.new.tree))
 ```
 
@@ -350,7 +351,7 @@ We can ` fancyRpartPlot()` from ` rattle` package to generate a fancy plot of th
 
 ```{r fancyPlot, warning=FALSE, error=TRUE, message=FALSE}
 library(rattle)
-#Generate the fancy plot
+# Generate the fancy plot
 fancyRpartPlot(diag.new.tree)
 ```
 
@@ -362,12 +363,11 @@ diag.tree.caret = train(form,
                         data = training, 
                         method = 'rpart', 
                         trControl = trainControl(method = "cv"))
-#Plot the Final Tree
+# Plot the Final Tree
 fancyRpartPlot(diag.tree.caret$finalModel)
 ```
 
-By comparing o/p from both the approachs we can see we get the exact same tree. Aftre pruning the tree from 
-` rpart` it gives us the same tree as ` caret`.
+By comparing o/p from both the approachs we can see we get the exact same tree. After pruning the tree using ` rpart` it gives us the same tree as ` caret`.
 
 Now let's use the decision tree to predict the data and determine the prediction error.
 
@@ -380,7 +380,7 @@ testing$tree_predict <- predict(diag.new.tree,
 # create the confusion matrix using the table function
 confusion_tree <- table(testing$tree_predict, 
                         testing$diagnosis)
-#Print the confusion matrix
+# Print the confusion matrix
 confusion_tree
 # show the accuracy of the decision tree
 cat("Overall accuracy of prediction:\t", 
@@ -401,26 +401,26 @@ cat("Rate of misclassifying B as M:\t",
 
 # 5. Build a classification algorithm using random forests/bagging. Adjust the parameters of the forest appropriately.
 
-Random forest, like its name implies, consists of a large number of individual decision trees that operate as an ensemble. Each individual tree in the random forest spits out a class prediction and the class with the most votes or mean prediction of the individual trees becomes our model’s prediction. The fundamental concept behind random forest is a simple but powerful one — the wisdom of crowds. 
+Random forest, like its name implies, consists of a large number of individual decision trees that operate as an ensemble. Each individual tree in the random forest generates a class prediction, and the class with the most votes or mean prediction of the individual trees becomes our model’s prediction. The fundamental concept behind random forest is a simple but powerful one — the wisdom of crowds. 
 
 We create a random forest using the package ` randomForest` to be used as a basis to predict diagnosis.  The forest is set up so that there will be 500 trees and 3 variables will be tried at each split.
 
 ```{r randForest, warning=FALSE, error=TRUE, message=FALSE}
 # set the seed for consistent results
 set.seed(1842)
-#Generate the Random Forest
+# Generate the Random Forest
 diag.forest <- randomForest(form, mtry = 3, 
                             ntree = 500, 
                             data=training, 
                             na.action = na.roughfix)
-#Print the Random Forest
+# Print the Random Forest
 diag.forest
 ```
 
 Let's generate the importance table of the predictors from the random forest model.
 
 ```{r rfImportance, warning=FALSE, error=TRUE, message=FALSE}
-#Importance of Variables
+# Importance of Variables
 randomForest::importance(diag.forest) %>%
   as.data.frame() %>% 
   rownames_to_column() %>% 
@@ -429,7 +429,7 @@ randomForest::importance(diag.forest) %>%
 ```
 
 
-We use the forest to predict the diagnosis in the test data.  We show the overall accuracy of the prediction.  Then we show the overall accuracy of the classifier with this value of K as well as the misclassifcation rate for M as B and B as M.
+We use the forest to predict the diagnosis in the test data.  We show the overall accuracy of the prediction.  Then we show the overall accuracy of the classifier with this value of K as well as the misclassification rate for M as B and B as M.
 
 
 ```{r rfPredict, warning=FALSE, error=TRUE, message=FALSE}
@@ -462,25 +462,25 @@ We attempt to refine the mtry parameter.  Perhaps there is a different number of
 
 
 ```{r randForestCaret, warning=FALSE, error=TRUE, message=FALSE}
-#10 folds repeat 3 times
+# 10 folds repeat 3 times
 control <- trainControl(method='repeatedcv', 
                         number=10, 
                         repeats=3,
                         search = 'random')
-#Metric compare model is Accuracy
+# Metric compare model is Accuracy
 metric <- "Accuracy"
 # set the seed for consistent results
 set.seed(1842)
-#Number randomely variable selected is mtry
+# Number randomely variable selected is mtry
 diag.rf.caret <- train(form, 
                       data=training, 
                       method='rf', 
                       metric='Accuracy', 
                       tuneLength = 10,
                       trControl=control)
-#Print the random forest cross validation results
+# Print the random forest cross validation results
 print(diag.rf.caret)
-#Plot the mtry vs Accuracy chart
+# Plot the mtry vs Accuracy chart
 plot(diag.rf.caret)
 ```
 
@@ -567,14 +567,14 @@ set.seed(1842)
 # choosing 5-fold as a good middle ground
 trControl <- trainControl(method  = "cv",
                           number  = 5)
-#find the best knn fit using values of K of all odd numbers from 1 to 99
+# find the best knn fit using values of K of all odd numbers from 1 to 99
 knn_fit <- train(diagnosis ~ .,
              method     = "knn",
              tuneGrid   = expand.grid(k = c((1:50)*2 - 1)),
              trControl  = trControl,
              metric     = "Accuracy",
              data       = training[-1])
-#Print the Model
+# Print the Model
 knn_fit
 ```
 
