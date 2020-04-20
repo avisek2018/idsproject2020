@@ -10,7 +10,7 @@ html_document:
 ---
   
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(eval = TRUE)
 ```
 
 ## Dataset
@@ -80,7 +80,10 @@ ggplot(cancer_df[ , c(2:12)] %>%
          pivot_longer(cols = radius_mean:fractal_dimension_mean), 
        aes(value, fill = diagnosis)) +
   geom_histogram(bins = 10) +  ggtitle("Histogram of Mean Measurements") +
-  facet_wrap(~name, scales = 'free_x')
+  facet_wrap(~name, scales = 'free_x') +
+  theme(strip.text = element_text(size=8)) +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 ```
 
 Let's plot the histogram for each of the standard error of the measurements to visualize the distribution of each field. We will color by the diagnosis to see the distribution of each field's mean broken down by diagnosis, B and M.
@@ -93,7 +96,9 @@ ggplot(cancer_df[ , c(2,13:22)] %>%
          pivot_longer(cols = radius_se:fractal_dimension_se), 
        aes(value, fill = diagnosis)) + 
   geom_histogram(bins = 10)  +  ggtitle("Histogram of Standard Error Measurements") +
-  facet_wrap(~name, scales = 'free_x')
+  facet_wrap(~name, scales = 'free_x') +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 ```
 
 Let's plot the histogram for the maximum/worst measurements of each predictors to visualize the distribution of each field. We will color by the diagnosis to see the distribution of each field's mean broken down by diagnosis, B and M.
@@ -105,7 +110,9 @@ ggplot(cancer_df[ , c(2,23:32)] %>%
        aes(value, fill = diagnosis)) + 
   geom_histogram(bins = 10)  +  ggtitle("Histogram of Maximum/Worst Measurements") +
   theme(plot.title = element_text(hjust = 0.5)) + 
-  facet_wrap(~name, scales = 'free_x')
+  facet_wrap(~name, scales = 'free_x') +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 ```
 
 
@@ -121,13 +128,17 @@ Now let's plot the histograms of each variables for better insights. For each va
 ggplot(data = cancer_df, aes(x = radius_mean)) + 
   geom_histogram(aes(fill = diagnosis), alpha = 0.5) +
   xlab('Mean Radius of nuclei') +  
-  ggtitle("Histogram of Mean Radius of the Nuclei")
+  ggtitle("Histogram of Mean Radius of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 # Histogram with density plot of  Mean Radius of nuclei 
 ggplot(cancer_df, aes(x = radius_mean, color = diagnosis, fill = diagnosis)) + 
   geom_histogram(aes(y=..density..), alpha=0.5,  position="identity") +
   xlab('Mean Radius of nuclei') +
   geom_density(alpha=.2) +  
-  ggtitle("Histogram with Density Plot of Mean Radius of the Nuclei")
+  ggtitle("Histogram with Density Plot of Mean Radius of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 ```
 
 
@@ -136,13 +147,17 @@ ggplot(cancer_df, aes(x = radius_mean, color = diagnosis, fill = diagnosis)) +
 ggplot(data = cancer_df, aes(x = texture_mean)) + 
   geom_histogram(aes(fill = diagnosis), alpha = 0.5) +
   xlab('Texture Mean of nuclei') +  
-  ggtitle("Histogram of Mean Texture of the Nuclei")
+  ggtitle("Histogram of Mean Texture of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 # Histogram with density plot of  texture_mean of nuclei 
 ggplot(cancer_df, aes(x = texture_mean, color = diagnosis, fill = diagnosis)) + 
   geom_histogram(aes(y=..density..), alpha=0.5,  position="identity") +
   xlab('Texture Mean of nuclei') +
   geom_density(alpha=.2) +  
-  ggtitle("Histogram with Density Plot of Texture Mean of the Nuclei")
+  ggtitle("Histogram with Density Plot of Texture Mean of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 ```
 
 ```{r hist3, warning=FALSE, error=TRUE, message=FALSE}
@@ -150,13 +165,17 @@ ggplot(cancer_df, aes(x = texture_mean, color = diagnosis, fill = diagnosis)) +
 ggplot(data = cancer_df, aes(x = perimeter_mean)) + 
   geom_histogram(aes(fill = diagnosis), alpha = 0.5) +
   xlab('Mean of Nuclei Perimeter') + 
-  ggtitle("Histogram of Mean Perimeter of the Nuclei")
+  ggtitle("Histogram of Mean Perimeter of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 # Histogram with density plot of  perimeter_mean of nuclei 
 ggplot(cancer_df, aes(x = perimeter_mean, color = diagnosis, fill = diagnosis)) + 
   geom_histogram(aes(y=..density..), alpha=0.5,  position="identity") +
   xlab('Mean of Nuclei Perimeter') +
   geom_density(alpha=.2) +  
-  ggtitle("Histogram with Density Plot of Mean of Nuclei Perimeter")
+  ggtitle("Histogram with Density Plot of Mean of Nuclei Perimeter") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 ```
 
 
@@ -165,13 +184,17 @@ ggplot(cancer_df, aes(x = perimeter_mean, color = diagnosis, fill = diagnosis)) 
 ggplot(data = cancer_df, aes(x = area_mean)) + 
   geom_histogram(aes(fill = diagnosis), alpha = 0.5) +
   xlab('Mean Area of nuclei') + 
-  ggtitle("Histogram of Mean Area of the Nuclei")
+  ggtitle("Histogram of Mean Area of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 # Histogram with density plot of  Mean Area of the Nuclei
 ggplot(cancer_df, aes(x = area_mean, color = diagnosis, fill = diagnosis)) + 
   geom_histogram(aes(y=..density..), alpha=0.5,  position="identity") +
   xlab('Mean Area of the Nuclei') +
   geom_density(alpha=.2) +  
-  ggtitle("Histogram with Density Plot of Mean Area of the Nuclei")
+  ggtitle("Histogram with Density Plot of Mean Area of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 ```
 
 ```{r hist5, warning=FALSE, error=TRUE, message=FALSE}
@@ -179,13 +202,17 @@ ggplot(cancer_df, aes(x = area_mean, color = diagnosis, fill = diagnosis)) +
 ggplot(data = cancer_df, aes(x = smoothness_mean)) + 
   geom_histogram(aes(fill = diagnosis), alpha = 0.5) +
   xlab('Smoothness Mean of Nuclei') + 
-  ggtitle("Histogram of Mean Smoothness of the Nuclei")
+  ggtitle("Histogram of Mean Smoothness of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 # Histogram with density plot of Smoothness Mean of Nuclei
 ggplot(cancer_df, aes(x = smoothness_mean, color = diagnosis, fill = diagnosis)) + 
   geom_histogram(aes(y=..density..), alpha=0.5,  position="identity") +
   xlab('Smoothness Mean of Nuclei') +
   geom_density(alpha=.2) +  
-  ggtitle("Histogram with Density Plot of Smoothness Mean of Nuclei")
+  ggtitle("Histogram with Density Plot of Smoothness Mean of Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 ```
 
 ```{r hist6, warning=FALSE, error=TRUE, message=FALSE}
@@ -193,13 +220,17 @@ ggplot(cancer_df, aes(x = smoothness_mean, color = diagnosis, fill = diagnosis))
 ggplot(data = cancer_df, aes(x = compactness_mean)) + 
   geom_histogram(aes(fill = diagnosis), alpha = 0.5) +
   xlab('Compactness Mean of Nuclei') + 
-  ggtitle("Histogram of Mean Compactness of the Nuclei")
+  ggtitle("Histogram of Mean Compactness of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 # Histogram with density plot of Compactness Mean of Nuclei
 ggplot(cancer_df, aes(x = compactness_mean, color = diagnosis, fill = diagnosis)) + 
   geom_histogram(aes(y=..density..), alpha=0.5,  position="identity") +
   xlab('Compactness Mean of Nuclei') +
   geom_density(alpha=.2) +  
-  ggtitle("Histogram with Density Plot of Compactness Mean of Nuclei")
+  ggtitle("Histogram with Density Plot of Compactness Mean of Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 ```
 
 ```{r hist7, warning=FALSE, error=TRUE, message=FALSE}
@@ -207,13 +238,17 @@ ggplot(cancer_df, aes(x = compactness_mean, color = diagnosis, fill = diagnosis)
 ggplot(data = cancer_df, aes(x = concavity_mean)) + 
   geom_histogram(aes(fill = diagnosis), alpha = 0.5) +
   xlab('Concavity Mean of nuclei') + 
-  ggtitle("Histogram of Mean Cocavity of the Nuclei")
+  ggtitle("Histogram of Mean Cocavity of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 # Histogram with density plot of Mean Cocavity of the Nuclei
 ggplot(cancer_df, aes(x = concavity_mean, color = diagnosis, fill = diagnosis)) + 
   geom_histogram(aes(y=..density..), alpha=0.5,  position="identity") +
   xlab('Mean Cocavity of the Nuclei') +
   geom_density(alpha=.2) +  
-  ggtitle("Histogram with Density Plot of Mean Cocavity of the Nuclei")
+  ggtitle("Histogram with Density Plot of Mean Cocavity of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 ```
 
 ```{r hist8, warning=FALSE, error=TRUE, message=FALSE}
@@ -221,14 +256,18 @@ ggplot(cancer_df, aes(x = concavity_mean, color = diagnosis, fill = diagnosis)) 
 ggplot(data = cancer_df, aes(x = concave_points_mean)) + 
   geom_histogram(aes(fill = diagnosis), alpha = 0.5) +
   xlab('Concave Points Mean of nuclei') + 
-  ggtitle("Histogram of Mean Concave Points of the Nuclei")
+  ggtitle("Histogram of Mean Concave Points of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 # Histogram with density plot of Concave Points Mean of nuclei
 ggplot(cancer_df, aes(x = concave_points_mean, 
                       color = diagnosis, fill = diagnosis)) + 
   geom_histogram(aes(y=..density..), alpha=0.5,  position="identity") +
   xlab('Concave Points Mean of nuclei') +
   geom_density(alpha=.2) +  
-  ggtitle("Histogram with Density Plot of Concave Points Mean of nuclei")
+  ggtitle("Histogram with Density Plot of Concave Points Mean of nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 ```
 
 ```{r hist9, warning=FALSE, error=TRUE, message=FALSE}
@@ -236,13 +275,17 @@ ggplot(cancer_df, aes(x = concave_points_mean,
 ggplot(data = cancer_df, aes(x = symmetry_mean)) + 
   geom_histogram(aes(fill = diagnosis), alpha = 0.5) +
   xlab('Symmetry Mean of Nuclei') + 
-  ggtitle("Histogram of Mean Symmetry of the Nuclei")
+  ggtitle("Histogram of Mean Symmetry of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 # Histogram with density plot of Symmetry Mean of Nuclei
 ggplot(cancer_df, aes(x = symmetry_mean, color = diagnosis, fill = diagnosis)) + 
   geom_histogram(aes(y=..density..), alpha=0.5,  position="identity") +
   xlab('Symmetry Mean of Nuclei') +
   geom_density(alpha=.2) +  
-  ggtitle("Histogram with Density Plot of Symmetry Mean of Nuclei")
+  ggtitle("Histogram with Density Plot of Symmetry Mean of Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 ```
 
 ```{r hist10, warning=FALSE, error=TRUE, message=FALSE}
@@ -250,14 +293,18 @@ ggplot(cancer_df, aes(x = symmetry_mean, color = diagnosis, fill = diagnosis)) +
 ggplot(data = cancer_df, aes(x = fractal_dimension_mean)) + 
   geom_histogram(aes(fill = diagnosis), alpha = 0.5) +
   xlab('Fractal Dimension Mean of Nuclei') + 
-  ggtitle("Histogram of Mean Fractical Dimension of the Nuclei")
+  ggtitle("Histogram of Mean Fractical Dimension of the Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 # Histogram with density plot of Fractal Dimension Mean of Nuclei
 ggplot(cancer_df, aes(x = fractal_dimension_mean, 
                       color = diagnosis, fill = diagnosis)) + 
   geom_histogram(aes(y=..density..), alpha=0.5,  position="identity") +
   xlab('Fractal Dimension Mean of Nuclei') +
   geom_density(alpha=.2) +  
-  ggtitle("Histogram with Density Plot of Fractal Dimension Mean of Nuclei")
+  ggtitle("Histogram with Density Plot of Fractal Dimension Mean of Nuclei") +
+  scale_fill_manual(values=c("#0C2340", "#C99700" )) +
+  scale_color_manual(values=c("#0C2340", "#C99700" ))
 ```
 
 ```{r ggally, warning=FALSE, error=TRUE, message=FALSE}
